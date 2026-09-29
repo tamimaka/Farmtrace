@@ -1,0 +1,348 @@
+/* ============================================================
+   Mbeu Trace — design tokens
+   "Mbeu" is the Shona word for seed/grain: the system follows
+   one seed from planting to the exporter's hand.
+   Palette drawn from the field photos: dry-season sand, maize
+   leaf, ox-hide brown, and a pale highveld sky used sparingly
+   as the "trust / verified" accent.
+   ============================================================ */
+:root{
+  --paper:      #F1E9D6;   /* dry sand */
+  --paper-raised:#FBF8F0;
+  --ink:        #2B2418;   /* warm near-black */
+  --ink-soft:   #6B6152;
+  --green:      #3B5A2A;   /* maize leaf */
+  --green-deep: #26391A;
+  --clay:       #8A5A2E;   /* ox-hide / tilled soil */
+  --clay-deep:  #6B4423;
+  --gold:       #D4A23A;   /* harvest gold */
+  --sky:        #6F9BBF;   /* verified / trust */
+  --sky-pale:   #E4EEF4;
+  --red:        #A63D2F;   /* flagged / rejected */
+  --line:       #D8CBAA;
+
+  --font-display: "Fraunces", "Georgia", serif;
+  --font-body:    "Karla", "Segoe UI", sans-serif;
+  --font-mono:    "IBM Plex Mono", monospace;
+
+  --radius: 3px;
+}
+
+*{ box-sizing: border-box; }
+html,body{ margin:0; padding:0; }
+body{
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+}
+a{ color: var(--green-deep); }
+h1,h2,h3,h4{
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--green-deep);
+  margin: 0 0 .4em 0;
+  letter-spacing: -.01em;
+}
+h1{ font-size: 2rem; }
+h2{ font-size: 1.4rem; }
+h3{ font-size: 1.1rem; }
+code, .mono{ font-family: var(--font-mono); }
+
+/* ---------- layout shell ---------- */
+.shell{ display:flex; min-height:100vh; }
+
+.sidebar{
+  width: 230px;
+  flex-shrink:0;
+  background: var(--green-deep);
+  color: #E9E4D4;
+  padding: 22px 18px;
+  position: sticky;
+  top:0;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+.brand{
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  color: #fff;
+  display:flex;
+  align-items:center;
+  gap:.5em;
+  margin-bottom: 6px;
+}
+.brand .seed{
+  width: 10px; height: 14px;
+  background: var(--gold);
+  border-radius: 60% 60% 60% 5%;
+  display:inline-block;
+  transform: rotate(-20deg);
+}
+.brand-sub{
+  font-size:.72rem;
+  color:#A9B79C;
+  letter-spacing:.03em;
+  margin-bottom: 26px;
+}
+.nav a{
+  display:block;
+  color:#CBD3BC;
+  text-decoration:none;
+  padding: 9px 10px;
+  border-radius: var(--radius);
+  font-size:.93rem;
+  margin-bottom:2px;
+  border-left: 3px solid transparent;
+}
+.nav a:hover{ background: rgba(255,255,255,.06); color:#fff; }
+.nav a.active{
+  background: rgba(255,255,255,.09);
+  color:#fff;
+  border-left-color: var(--gold);
+}
+.sidebar-foot{
+  margin-top:auto;
+  font-size:.75rem;
+  color:#8FA080;
+  padding-top:16px;
+  border-top:1px solid rgba(255,255,255,.1);
+}
+.user-chip{
+  display:flex; align-items:center; justify-content:space-between;
+  background: rgba(255,255,255,.06); border-radius: var(--radius);
+  padding: 10px 12px; margin-top:14px;
+}
+.user-chip .who{ font-size:.82rem; color:#E9E4D4; }
+.user-chip .role{ font-size:.68rem; color:#A9B79C; text-transform: uppercase; letter-spacing:.04em; }
+.user-chip a{ color:#D4A23A; font-size:.76rem; text-decoration:none; }
+.user-chip a:hover{ text-decoration:underline; }
+
+.main{ flex:1; min-width:0; }
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 14px 30px;
+  border-bottom: 1px solid var(--line);
+  background: var(--paper-raised);
+}
+.topbar h1{ font-size:1.25rem; margin:0; }
+.content{ padding: 26px 30px 60px; max-width: 1180px; }
+
+/* ---------- sync badge ---------- */
+.sync-badge{
+  display:inline-flex; align-items:center; gap:7px;
+  font-size:.82rem;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink-soft);
+  text-decoration:none;
+}
+.sync-dot{ width:8px; height:8px; border-radius:50%; background: var(--green); }
+.sync-badge.pending .sync-dot{ background: var(--gold); animation: pulse 1.4s infinite; }
+@keyframes pulse{ 0%{opacity:1;} 50%{opacity:.35;} 100%{opacity:1;} }
+
+/* ---------- hero banner (dashboard) ---------- */
+.hero{
+  position:relative;
+  border-radius: var(--radius);
+  overflow:hidden;
+  margin-bottom: 26px;
+  min-height: 190px;
+  display:flex; align-items:flex-end;
+  background: #333 url("/static/images/hero-plowing.jpg") center 30%/cover no-repeat;
+}
+.hero::after{
+  content:"";
+  position:absolute; inset:0;
+  background: linear-gradient(0deg, rgba(38,57,26,.92) 5%, rgba(38,57,26,.35) 55%, rgba(38,57,26,.05) 100%);
+}
+.hero-inner{ position:relative; padding: 20px 26px; color:#fff; }
+.hero-inner h1{ color:#fff; margin-bottom:4px; }
+.hero-inner p{ color:#D8E3C9; margin:0; max-width:520px; font-size:.92rem; }
+
+.hero-sm{
+  min-height: 130px;
+  background-image: url("/static/images/hero-farmer.jpg");
+  background-position: center 35%;
+}
+.hero-oxen{ background-image: url("/static/images/hero-oxen.webp"); background-position: center 40%; }
+.hero-spraying{ background-image: url("/static/images/hero-spraying.webp"); background-position: center 45%; }
+.hero-digging{ background-image: url("/static/images/hero-digging.webp"); background-position: center 35%; }
+.hero-produce{ background-image: url("/static/images/hero-produce.webp"); background-position: center center; }
+
+/* ---------- login page ---------- */
+.login-shell{
+  min-height:100vh; display:flex;
+}
+.login-visual{
+  flex: 1.1;
+  background: linear-gradient(0deg, rgba(38,57,26,.82), rgba(38,57,26,.25)),
+              url("/static/images/hero-login.webp") center 30%/cover no-repeat;
+  display:flex; align-items:flex-end; padding: 40px;
+  color:#fff;
+}
+.login-visual .tagline{ max-width:380px; }
+.login-visual .tagline h1{ color:#fff; font-size:1.9rem; }
+.login-visual .tagline p{ color:#D8E3C9; font-size:.95rem; }
+.login-form-side{
+  flex:1; display:flex; align-items:center; justify-content:center;
+  background: var(--paper); padding: 30px;
+}
+.login-card{ width:100%; max-width: 360px; }
+.login-card .brand{ color: var(--green-deep); margin-bottom: 4px; }
+.login-card .brand-sub{ color: var(--ink-soft); margin-bottom: 26px; }
+.demo-creds{
+  margin-top:18px; font-size:.78rem; color: var(--ink-soft);
+  background: var(--paper-raised); border:1px solid var(--line); border-radius: var(--radius);
+  padding: 10px 12px;
+}
+.demo-creds .mono{ color: var(--clay-deep); }
+@media (max-width: 760px){
+  .login-shell{ flex-direction:column; }
+  .login-visual{ min-height: 220px; flex:none; }
+}
+
+/* ---------- stat cards ---------- */
+.stats{ display:grid; grid-template-columns: repeat(4,1fr); gap:14px; margin-bottom: 26px; }
+.stat-card{
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--green);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+.stat-card.gold{ border-left-color: var(--gold); }
+.stat-card.clay{ border-left-color: var(--clay); }
+.stat-card.sky{ border-left-color: var(--sky); }
+.stat-num{ font-family: var(--font-display); font-size:1.9rem; color:var(--ink); line-height:1; }
+.stat-label{ font-size:.78rem; color: var(--ink-soft); margin-top:5px; text-transform: none; }
+
+/* ---------- panel / card ---------- */
+.panel{
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 22px;
+}
+.panel-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+
+/* ---------- table (ledger style) ---------- */
+table{ width:100%; border-collapse: collapse; font-size:.9rem; }
+th{
+  text-align:left; font-weight:600; color: var(--ink-soft);
+  font-size:.74rem; letter-spacing:.02em;
+  padding: 8px 10px; border-bottom: 2px solid var(--line);
+}
+td{ padding: 10px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+tr:hover td{ background: rgba(59,90,42,.04); }
+.batch-code{ font-family: var(--font-mono); font-size:.83rem; color: var(--clay-deep); }
+
+/* ---------- status pill ---------- */
+.pill{
+  display:inline-block; padding: 3px 10px; border-radius: 20px;
+  font-size:.74rem; font-weight:600; white-space:nowrap;
+}
+.pill-planted{ background:#EAE3CE; color:#7A6A38; }
+.pill-growing{ background:#DCEACB; color:#3F5D2D; }
+.pill-harvested{ background:#F1DCC0; color:#8A5A2E; }
+.pill-processed{ background:#F1DCC0; color:#8A5A2E; }
+.pill-ready_for_sale{ background:#DCE9F0; color:#3D6E8A; }
+.pill-sold{ background:#DCE9F0; color:#3D6E8A; }
+.pill-exported{ background:#D6E4D0; color:#26391A; }
+.pill-rejected, .pill-flagged{ background:#F2D9D4; color:#A63D2F; }
+.pill-verified{ background:#D6E4D0; color:#26391A; }
+
+/* ---------- buttons ---------- */
+.btn{
+  display:inline-block; font-family: var(--font-body); font-weight:600;
+  font-size:.88rem; padding: 9px 18px; border-radius: var(--radius);
+  border: 1px solid var(--green-deep); background: var(--green-deep); color:#fff;
+  cursor:pointer; text-decoration:none;
+}
+.btn:hover{ background: var(--green); border-color: var(--green); }
+.btn-outline{ background: transparent; color: var(--green-deep); }
+.btn-outline:hover{ background: var(--green-deep); color:#fff; }
+.btn-gold{ background: var(--gold); border-color:var(--gold); color:var(--ink); }
+.btn-gold:hover{ background:#c1922f; }
+.btn-sm{ padding:6px 12px; font-size:.8rem; }
+
+/* ---------- forms ---------- */
+.form-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
+.form-grid.narrow{ grid-template-columns: 1fr; }
+.field{ display:flex; flex-direction:column; gap:5px; }
+.field.full{ grid-column: 1 / -1; }
+label{ font-size:.8rem; font-weight:600; color: var(--ink-soft); }
+input, select, textarea{
+  font-family: var(--font-body); font-size:.92rem;
+  padding: 9px 10px; border:1px solid var(--line); border-radius: var(--radius);
+  background: #fff; color: var(--ink);
+}
+input:focus, select:focus, textarea:focus{ outline: 2px solid var(--sky); outline-offset:1px; }
+textarea{ resize:vertical; min-height:70px; }
+
+/* ---------- flash messages ---------- */
+.flash{ padding:11px 16px; border-radius: var(--radius); margin-bottom:16px; font-size:.9rem; }
+.flash-success{ background:#DCEACB; color:#2E4B21; border:1px solid #B9D19E; }
+.flash-error{ background:#F2D9D4; color:#7A2A1E; border:1px solid #E0B3A9; }
+
+/* ---------- timeline (batch trail) ---------- */
+.timeline{ list-style:none; margin:0; padding:0; border-left: 2px solid var(--line); margin-left: 6px; }
+.timeline li{ position:relative; padding: 4px 0 16px 22px; }
+.timeline li::before{
+  content:""; position:absolute; left:-7px; top:6px;
+  width:12px; height:12px; border-radius:50%;
+  background: var(--paper-raised); border: 2px solid var(--green);
+}
+.timeline .t-date{ font-size:.75rem; color: var(--ink-soft); font-family: var(--font-mono); }
+.timeline .t-title{ font-weight:600; }
+.timeline .t-desc{ font-size:.87rem; color: var(--ink-soft); }
+
+/* ---------- QR block ---------- */
+.qr-block{ text-align:center; background:#fff; border:1px solid var(--line); border-radius: var(--radius); padding: 16px; }
+.qr-block img{ width: 160px; height:160px; image-rendering: pixelated; }
+.qr-code-label{ font-family: var(--font-mono); font-size:.85rem; margin-top:8px; color: var(--clay-deep); }
+
+/* ---------- status bars (dashboard breakdown) ---------- */
+.status-row{ display:flex; align-items:center; gap:10px; margin-bottom:8px; font-size:.86rem; }
+.status-row .label{ width:120px; color:var(--ink-soft); flex-shrink:0; }
+.status-row .bar-bg{ flex:1; background:#EAE1C7; border-radius:3px; height:10px; overflow:hidden; }
+.status-row .bar-fill{ height:100%; background: var(--green); }
+.status-row .n{ width:26px; text-align:right; font-family: var(--font-mono); }
+
+/* ---------- verify (public certificate-style page) ---------- */
+.verify-wrap{ max-width: 780px; margin: 0 auto; padding: 24px 20px 70px; }
+.verify-head{
+  text-align:center; padding: 34px 20px 26px;
+  background: linear-gradient(180deg, rgba(38,57,26,.88), rgba(38,57,26,.88)),
+              url("/static/images/hero-farmer.jpg") center 25%/cover no-repeat;
+  margin-bottom: 26px;
+}
+.verify-head .brand{ justify-content:center; color:#fff; }
+.verify-head p{ color:#D8E3C9; }
+.cert{
+  background: var(--paper-raised); border: 1px solid var(--line);
+  border-radius: 4px; padding: 30px 34px;
+}
+.cert-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:20px; border-bottom:1px dashed var(--line); padding-bottom:18px; margin-bottom:18px; }
+.cert-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; font-size:.92rem; margin-bottom:20px; }
+.cert-grid dt{ color:var(--ink-soft); font-size:.76rem; }
+.cert-grid dd{ margin:0 0 8px 0; font-weight:600; }
+.not-found{ text-align:center; padding: 60px 20px; color: var(--ink-soft); }
+
+.empty{ color: var(--ink-soft); font-size:.9rem; padding: 14px 4px; }
+
+.two-col{ display:grid; grid-template-columns: 1.4fr 1fr; gap: 22px; align-items:start; }
+
+@media (max-width: 880px){
+  .sidebar{ display:none; }
+  .stats{ grid-template-columns: repeat(2,1fr); }
+  .form-grid{ grid-template-columns: 1fr; }
+  .two-col{ grid-template-columns: 1fr; }
+}

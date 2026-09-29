@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block page_title %}New produce batch{% endblock %}
+{% block content %}
+
+<div class="hero hero-sm hero-digging">
+  <div class="hero-inner">
+    <h1 style="font-size:1.4rem;">Start a new batch</h1>
+    <p>A batch code and QR are generated the moment you save.</p>
+  </div>
+</div>
+
+<div class="panel" style="max-width:700px;">
+  <h2>Batch details</h2>
+  <p class="empty" style="padding:0 0 14px;">Print the QR and attach it to the crop/produce so it can be scanned all the way to the exporter.</p>
+  <form method="post">
+    <div class="form-grid">
+      <div class="field full">
+        <label>Farmer *</label>
+        <select name="farmer_id" required>
+          <option value="">Select farmer...</option>
+          {% for f in farmers %}
+            <option value="{{ f.farmer_id }}" {{ 'selected' if preselect_farmer and preselect_farmer|int == f.farmer_id }}>{{ f.full_name }} ({{ f.farmer_code }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>Crop *</label>
+        <select name="crop_id" required>
+          {% for c in crops %}
+            <option value="{{ c.crop_id }}">{{ c.crop_name }} — {{ c.variety }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>Organic?</label>
+        <select name="is_organic"><option value="">No</option><option value="1">Yes</option></select>
+      </div>
+      <div class="field"><label>Planting date</label><input type="date" name="planting_date"></div>
+      <div class="field"><label>Expected harvest date</label><input type="date" name="expected_harvest_date"></div>
+      <div class="field full"><label>Notes</label><textarea name="notes" placeholder="Anything worth recording about this planting..."></textarea></div>
+    </div>
+    <div style="margin-top:22px;">
+      <button class="btn btn-gold" type="submit">Create batch &amp; generate QR</button>
+      <a href="{{ url_for('batches_list') }}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

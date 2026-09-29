@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Log in — Mbeu Trace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Karla:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="login-shell">
+  <div class="login-visual">
+    <div class="tagline">
+      <h1>Every seed has a story.</h1>
+      <p>Mbeu Trace follows produce from a smallholder's field to the exporter's hand — offline first, verified always.</p>
+    </div>
+  </div>
+
+  <div class="login-form-side">
+    <div class="login-card">
+      <div class="brand"><span class="seed"></span> Mbeu Trace</div>
+      <div class="brand-sub">Sign in to the kiosk</div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="flash flash-{{ 'error' if category=='error' else 'success' }}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <form method="post">
+        <div class="field" style="margin-bottom:14px;">
+          <label>Username</label>
+          <input type="text" name="username" required autofocus>
+        </div>
+        <div class="field" style="margin-bottom:18px;">
+          <label>Password</label>
+          <input type="password" name="password" required>
+        </div>
+        <button class="btn" style="width:100%;" type="submit">Log in</button>
+      </form>
+
+      <div class="demo-creds">
+        Demo accounts &middot; admin / <span class="mono">admin123</span><br>
+        Demo accounts &middot; agent / <span class="mono">agent123</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

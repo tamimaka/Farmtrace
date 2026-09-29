@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+{% block page_title %}Batch {{ batch.batch_code }}{% endblock %}
+{% block content %}
+
+<div class="two-col">
+  <div>
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <h2 style="margin-bottom:2px;">{{ batch.crop_name }} <span class="empty" style="padding:0;">({{ batch.variety }})</span></h2>
+          <span class="batch-code">{{ batch.batch_code }}</span>
+        </div>
+        <span class="pill pill-{{ batch.status }}">{{ batch.status.replace('_',' ') }}</span>
+      </div>
+      <div class="cert-grid" style="margin-bottom:0;">
+        <div><dt>Farmer</dt><dd><a href="{{ url_for('farmer_detail', farmer_id=batch.farmer_id) }}">{{ batch.farmer_name }}</a> ({{ batch.farmer_code }})</dd></div>
+        <div><dt>District</dt><dd>{{ batch.district or '—' }}</dd></div>
+        <div><dt>Planted</dt><dd>{{ batch.planting_date or '—' }}</dd></div>
+        <div><dt>Harvested</dt><dd>{{ batch.harvest_date or '—' }}</dd></div>
+        <div><dt>Quantity</dt><dd>{{ (batch.quantity_kg ~ ' kg') if batch.quantity_kg else 'not yet recorded' }}</dd></div>
+        <div><dt>Grade</dt><dd>{{ batch.quality_grade }}</dd></div>
+        {% if farm and farm.eudr_compliant %}
+        <div><dt>EUDR Compliance</dt><dd><span style="color:#137333; font-weight:600;">✓ Deforestation-Free (EU Compliant)</span></dd></div>
+        {% endif %}
+      </div>
+
+      {% if audit_status and audit_status.valid %}
+      <div style="background:#eaf7ee; border:1px solid #b7e4c7; color:#1b4332; padding:8px 12px; border-radius:6px; font-size:0.85rem; margin-top:12px; display:flex; align-items:center; gap:8px;">
+        <span>🛡️</span>
+        <div>
+          <strong>Cryptographic Audit Verified</strong> — Linked via SHA-256 chain (Record count: {{ audit_status.count }}).
+        </div>
+      </div>
+      {% endif %}
+
+      <form method="post" action="{{ url_for('batch_update_status', batch_id=batch.batch_id) }}" style="margin-top:14px; display:flex; gap:8px; align-items:center;">
+        <label style="margin:0;">Update status:</label>
+        <select name="status" style="width:auto;" {{ 'disabled' if current_user.role not in ['admin','agent'] }}>
+          {% for s in ['planted','growing','harvested','processed','ready_for_sale','sold','exported','rejected'] %}
+            <option value="{{ s }}" {{ 'selected' if s == batch.status }}>{{ s.replace('_',' ')|capitalize }}</option>
+          {% endfor %}
+        </select>
+        {% if current_user.role in ['admin','agent'] %}
+        <button class="btn btn-outline btn-sm" type="submit">Update</button>
+        {% endif %}
+      </form>
+    </div>
+
+    <!-- LINEAGE (DAG: Parents & Children) -->
+    <div class="panel">
+      <div class="panel-head"><h2>Batch Lineage (Splitting & Merging)</h2></div>
+      {% if parents %}
+        <h4 style="margin:8px 0 4px; font-size:0.85rem; color:var(--text-muted);">Derived from Parent Lots:</h4>
+        <ul style="list-style:none; padding:0; margin:0 0 12px;">
+          {% for p in parents %}
+            <li style="padding:6px 0; border-bottom:1px solid #f0f0f0; font-size:0.9rem;">
+              Derived from <a href="{{ url_for('batch_detail', batch_id=p.parent_batch_id) }}"><strong>{{ p.batch_code }}</strong></a>: {{ p.quantity_kg }} kg transferred ({{ p.transfer_notes or 'Split' }})
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      {% if children %}
+        <h4 style="margin:8px 0 4px; font-size:0.85rem; color:var(--text-muted);">Split into Child Lots:</h4>
+        <ul style="list-style:none; padding:0; margin:0 0 12px;">
+          {% for c in children %}
+            <li style="padding:6px 0; border-bottom:1px solid #f0f0f0; font-size:0.9rem;">
+              Allocated to <a href="{{ url_for('batch_detail', batch_id=c.child_batch_id) }}"><strong>{{ c.batch_code }}</strong></a>: {{ c.quantity_kg }} kg (Grade: {{ c.quality_grade }})
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      {% if not parents and not children %}
+        <p class="empty" style="padding:4px 0 12px;">Primary lot. No split or merge events recorded.</p>
+      {% endif %}
+
+      {% if current_user.role in ['admin','agent'] and (batch.quantity_kg or 0) > 0 %}
+      <details style="margin-top:10px;">
+        <summary style="cursor:pointer; font-weight:600; font-size:.88rem; color:#b08900;">✂️ Split this batch into a new graded lot</summary>
+        <form method="post" action="{{ url_for('batch_split', batch_id=batch.batch_id) }}" style="margin-top:12px;">
+          <div class="form-grid">
+            <div class="field">
+              <label>Quantity to split (kg) *</label>
+              <input type="number" step="0.01" max="{{ batch.quantity_kg }}" name="split_quantity_kg" placeholder="e.g. 150" required>
+            </div>
+            <div class="field">
+              <label>Target Quality Grade</label>
+              <select name="quality_grade">
+                <option value="A">Grade A (Premium Export)</option>
+                <option value="B">Grade B (Standard)</option>
+                <option value="C">Grade C (Local)</option>
+                <option value="Ungraded">Ungraded</option>
+              </select>
+            </div>
+            <div class="field full">
+              <label>Split / Grading Notes</label>
+              <input type="text" name="split_notes" placeholder="e.g. Screen 18 sorting for EU export">
+            </div>
+          </div>
+          <button class="btn btn-sm btn-gold" style="margin-top:10px;" type="submit">Create Child Lot</button>
+        </form>
+      </details>
+      {% endif %}
+    </div>
+
+    <!-- INPUTS -->
+    <div class="panel">
+      <div class="panel-head"><h2>Inputs applied</h2></div>
+      {% if inputs %}
+      <ul class="timeline">
+        {% for i in inputs %}
+          <li>
+            <div class="t-date">{{ i.application_date or 'date unrecorded' }}</div>
+            <div class="t-title">{{ i.input_type|capitalize }} — {{ i.input_name }}</div>
+            <div class="t-desc">{{ i.quantity or '?' }} {{ i.unit or '' }} {% if i.supplier %}&middot; from {{ i.supplier }}{% endif %}</div>
+          </li>
+        {% endfor %}
+      </ul>
+      {% else %}<p class="empty">No inputs recorded yet.</p>{% endif %}
+
+      {% if current_user.role in ['admin','agent'] %}
+      <details style="margin-top:10px;">
+        <summary style="cursor:pointer; font-weight:600; font-size:.88rem;">+ Record an input</summary>
+        <form method="post" action="{{ url_for('add_input', batch_id=batch.batch_id) }}" style="margin-top:12px;">
+          <div class="form-grid">
+            <div class="field"><label>Type</label>
+              <select name="input_type"><option>seed</option><option>fertilizer</option><option>pesticide</option><option>herbicide</option><option>water</option><option>other</option></select>
+            </div>
+            <div class="field"><label>Name</label><input type="text" name="input_name" placeholder="e.g. Compound D fertilizer"></div>
+            <div class="field"><label>Quantity</label><input type="number" step="0.01" name="quantity"></div>
+            <div class="field"><label>Unit</label><input type="text" name="unit" placeholder="kg, L, g"></div>
+            <div class="field"><label>Supplier</label><input type="text" name="supplier"></div>
+            <div class="field"><label>Cost (USD)</label><input type="number" step="0.01" name="cost_usd"></div>
+            <div class="field"><label>Date applied</label><input type="date" name="application_date"></div>
+            <div class="field"><label>Applied by</label><input type="text" name="applied_by"></div>
+          </div>
+          <button class="btn btn-sm" style="margin-top:10px;" type="submit">Save input</button>
+        </form>
+      </details>
+      {% endif %}
+    </div>
+
+    <!-- PROCESSES -->
+    <div class="panel">
+      <div class="panel-head"><h2>Farm activities</h2></div>
+      {% if processes %}
+      <ul class="timeline">
+        {% for p in processes %}
+          <li>
+            <div class="t-date">{{ p.process_date or 'date unrecorded' }}</div>
+            <div class="t-title">{{ p.process_type.replace('_',' ')|capitalize }}</div>
+            <div class="t-desc">{{ p.description or '' }} {% if p.performed_by %}&middot; by {{ p.performed_by }}{% endif %}</div>
+          </li>
+        {% endfor %}
+      </ul>
+      {% else %}<p class="empty">No activities recorded yet.</p>{% endif %}
+
+      {% if current_user.role in ['admin','agent'] %}
+      <details style="margin-top:10px;">
+        <summary style="cursor:pointer; font-weight:600; font-size:.88rem;">+ Record an activity</summary>
+        <form method="post" action="{{ url_for('add_process', batch_id=batch.batch_id) }}" style="margin-top:12px;">
+          <div class="form-grid">
+            <div class="field"><label>Activity</label>
+              <select name="process_type">
+                <option value="land_prep">Land preparation</option>
+                <option value="planting">Planting</option>
+                <option value="weeding">Weeding</option>
+                <option value="irrigation">Irrigation</option>
+                <option value="pest_control">Pest control</option>
+                <option value="harvesting">Harvesting</option>
+                <option value="drying">Drying</option>
+                <option value="sorting">Sorting</option>
+                <option value="packaging">Packaging</option>
+                <option value="storage">Storage</option>
+                <option value="transport">Transport</option>
+              </select>
+            </div>
+            <div class="field"><label>Date</label><input type="date" name="process_date"></div>
+            <div class="field full"><label>Description</label><input type="text" name="description"></div>
+            <div class="field"><label>Performed by</label><input type="text" name="performed_by"></div>
+            <div class="field"><label>GPS (lat, lon)</label>
+              <div style="display:flex; gap:6px;">
+                <input type="text" name="gps_lat" placeholder="lat">
+                <input type="text" name="gps_lon" placeholder="lon">
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-sm" style="margin-top:10px;" type="submit">Save activity</button>
+        </form>
+      </details>
+      {% endif %}
+    </div>
+
+    <!-- OUTPUTS -->
+    <div class="panel">
+      <div class="panel-head"><h2>Outputs / post-harvest handling</h2></div>
+      {% if outputs %}
+      <ul class="timeline">
+        {% for o in outputs %}
+          <li>
+            <div class="t-date">{{ o.output_date or 'date unrecorded' }}</div>
+            <div class="t-title">{{ o.output_type|capitalize if o.output_type else 'Output' }} — {{ o.quantity_kg }} kg</div>
+            <div class="t-desc">{{ o.packaging_type or '' }} {% if o.storage_location %}&middot; stored at {{ o.storage_location }}{% endif %}</div>
+          </li>
+        {% endfor %}
+      </ul>
+      {% else %}<p class="empty">No outputs recorded yet.</p>{% endif %}
+
+      {% if current_user.role in ['admin','agent'] %}
+      <details style="margin-top:10px;">
+        <summary style="cursor:pointer; font-weight:600; font-size:.88rem;">+ Record output</summary>
+        <form method="post" action="{{ url_for('add_output', batch_id=batch.batch_id) }}" style="margin-top:12px;">
+          <div class="form-grid">
+            <div class="field"><label>Type</label>
+              <select name="output_type"><option value="raw">Raw</option><option value="dried">Dried</option><option value="shelled">Shelled</option><option value="graded">Graded</option><option value="packaged">Packaged</option></select>
+            </div>
+            <div class="field"><label>Quantity (kg)</label><input type="number" step="0.01" name="quantity_kg"></div>
+            <div class="field"><label>Packaging</label><input type="text" name="packaging_type" placeholder="50kg bag, crate..."></div>
+            <div class="field"><label>Storage location</label><input type="text" name="storage_location"></div>
+            <div class="field"><label>Date</label><input type="date" name="output_date"></div>
+          </div>
+          <button class="btn btn-sm" style="margin-top:10px;" type="submit">Save output</button>
+        </form>
+      </details>
+      {% endif %}
+    </div>
+  </div>
+
+  <div>
+    <div class="qr-block">
+      {% if batch.qr_code_path %}
+        <img src="{{ url_for('static', filename=batch.qr_code_path.replace('static/','')) }}" alt="QR code for {{ batch.batch_code }}">
+      {% endif %}
+      <div class="qr-code-label">{{ batch.batch_code }}</div>
+      <p class="empty" style="padding-top:6px;">Scan resolves to the public verification page an exporter uses to check this batch's full trail.</p>
+      <a href="{{ url_for('verify_batch', batch_code=batch.batch_code) }}" class="btn btn-outline btn-sm" target="_blank">Open verification page</a>
+    </div>
+
+    <div class="panel">
+      <h2>Verification history</h2>
+      {% if verifications %}
+        <ul class="timeline">
+          {% for v in verifications %}
+            <li>
+              <div class="t-date">{{ v.verification_date[:10] if v.verification_date else '' }}</div>
+              <div class="t-title"><span class="pill pill-{{ v.verification_status }}">{{ v.verification_status }}</span> {{ v.company_name or '' }}</div>
+              <div class="t-desc">{{ v.notes or '' }}</div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="empty">Not yet verified by an exporter.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

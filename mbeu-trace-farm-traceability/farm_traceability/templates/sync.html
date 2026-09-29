@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block page_title %}Sync{% endblock %}
+{% block content %}
+
+<div class="panel">
+  <h2>Offline-first synchronization</h2>
+  <p class="empty" style="padding:0 0 14px;">
+    Every record captured on this kiosk is saved locally first and queued below.
+    When this device has internet access — wifi at a trading centre, a mobile
+    data dongle, or a scheduled sync window — press "Sync now" to push queued
+    records to the central district server. Records not yet sent stay queued
+    safely; nothing is lost if the connection drops mid-sync.
+  </p>
+
+  {% if result %}
+    <div class="flash flash-success">
+      Synced {{ result.synced }} record(s){% if result.failed %}, {{ result.failed }} failed and will retry{% endif %}. {{ result.remaining }} still pending.
+    </div>
+  {% endif %}
+
+  <div class="stats" style="grid-template-columns: repeat(2,1fr); margin-bottom:18px;">
+    <div class="stat-card gold">
+      <div class="stat-num">{{ pending }}</div>
+      <div class="stat-label">Pending sync</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">{{ synced }}</div>
+      <div class="stat-label">Synced to server</div>
+    </div>
+  </div>
+
+  {% if current_user.role in ['admin','agent'] %}
+  <form method="post">
+    <button class="btn btn-gold" type="submit">Sync now</button>
+  </form>
+  {% else %}
+  <p class="empty" style="padding:0;">Only admin/agent accounts can trigger a sync from this device.</p>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <h2>Recent sync activity</h2>
+  {% if log %}
+  <table>
+    <thead><tr><th>Table</th><th>Record</th><th>Operation</th><th>Status</th><th>Created</th></tr></thead>
+    <tbody>
+    {% for l in log %}
+      <tr>
+        <td>{{ l.table_name }}</td>
+        <td class="batch-code">#{{ l.record_id }}</td>
+        <td>{{ l.operation }}</td>
+        <td><span class="pill pill-{{ 'verified' if l.sync_status=='synced' else ('flagged' if l.sync_status=='failed' else 'planted') }}">{{ l.sync_status }}</span></td>
+        <td>{{ l.created_at[:16] if l.created_at else '' }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p class="empty">No activity yet.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

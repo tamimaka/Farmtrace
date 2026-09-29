@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block page_title %}Dashboard{% endblock %}
+{% block content %}
+
+<div class="hero">
+  <div class="hero-inner">
+    <h1>From the field to the export crate</h1>
+    <p>Every batch registered here carries its full history — seed, inputs, activities and grading — from a smallholder plot to the exporter who verifies it.</p>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat-card">
+    <div class="stat-num">{{ stats.farmers }}</div>
+    <div class="stat-label">Registered farmers</div>
+  </div>
+  <div class="stat-card gold">
+    <div class="stat-num">{{ stats.batches }}</div>
+    <div class="stat-label">Produce batches tracked</div>
+  </div>
+  <div class="stat-card clay">
+    <div class="stat-num">{{ stats.exporters }}</div>
+    <div class="stat-label">Registered exporters</div>
+  </div>
+  <div class="stat-card sky">
+    <div class="stat-num">{{ stats.verified }}</div>
+    <div class="stat-label">Batches verified</div>
+  </div>
+</div>
+
+<div class="two-col">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Recent batches</h2>
+      <a href="{{ url_for('batches_list') }}" class="btn btn-outline btn-sm">View all</a>
+    </div>
+    {% if recent_batches %}
+    <table>
+      <thead><tr><th>Batch code</th><th>Farmer</th><th>Crop</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for b in recent_batches %}
+        <tr onclick="window.location='{{ url_for('batch_detail', batch_id=b.batch_id) }}'" style="cursor:pointer">
+          <td class="batch-code">{{ b.batch_code }}</td>
+          <td>{{ b.farmer_name }}</td>
+          <td>{{ b.crop_name }}</td>
+          <td><span class="pill pill-{{ b.status }}">{{ b.status.replace('_',' ') }}</span></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <p class="empty">No batches yet. <a href="{{ url_for('batch_new') }}">Create the first one</a>.</p>
+    {% endif %}
+  </div>
+
+  <div class="panel">
+    <h2>Batches by stage</h2>
+    {% set total = stats.batches if stats.batches > 0 else 1 %}
+    {% for row in by_status %}
+      <div class="status-row">
+        <span class="label">{{ row.status.replace('_',' ') }}</span>
+        <span class="bar-bg"><span class="bar-fill" style="width:{{ (row.n / total * 100)|round(0) }}%"></span></span>
+        <span class="n">{{ row.n }}</span>
+      </div>
+    {% else %}
+      <p class="empty">No data yet.</p>
+    {% endfor %}
+
+    <div style="margin-top:18px; display:flex; gap:10px; flex-wrap:wrap;">
+      {% if current_user.role in ['admin','agent'] %}
+      <a href="{{ url_for('farmer_new') }}" class="btn btn-sm">+ Register farmer</a>
+      <a href="{{ url_for('batch_new') }}" class="btn btn-gold btn-sm">+ New batch</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

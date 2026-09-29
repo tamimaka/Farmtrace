@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block page_title %}Produce batches{% endblock %}
+{% block content %}
+
+<div class="hero hero-sm hero-spraying">
+  <div class="hero-inner">
+    <h1 style="font-size:1.4rem;">Every batch, every input, traced</h1>
+    <p>From seed to spray to sale — each entry here builds the record an exporter will check.</p>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-head">
+    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+      <a href="{{ url_for('batches_list') }}" class="btn btn-sm {{ '' if status else 'btn' }} {{ 'btn-outline' if status }}">All</a>
+      {% for s in ['planted','growing','harvested','ready_for_sale','exported'] %}
+        <a href="{{ url_for('batches_list', status=s) }}" class="btn btn-sm {{ 'btn-outline' if status != s }}">{{ s.replace('_',' ')|capitalize }}</a>
+      {% endfor %}
+    </div>
+    {% if current_user.role in ['admin','agent'] %}
+    <a href="{{ url_for('batch_new') }}" class="btn btn-gold btn-sm">+ New batch</a>
+    {% endif %}
+  </div>
+
+  {% if batches %}
+  <table>
+    <thead><tr><th>Batch code</th><th>Farmer</th><th>Crop</th><th>Quantity</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+    {% for b in batches %}
+      <tr>
+        <td class="batch-code">{{ b.batch_code }}</td>
+        <td>{{ b.farmer_name }}</td>
+        <td>{{ b.crop_name }}</td>
+        <td>{{ b.quantity_kg ~ ' kg' if b.quantity_kg else '—' }}</td>
+        <td><span class="pill pill-{{ b.status }}">{{ b.status.replace('_',' ') }}</span></td>
+        <td><a href="{{ url_for('batch_detail', batch_id=b.batch_id) }}" class="btn btn-outline btn-sm">View</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p class="empty">No batches match this filter.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

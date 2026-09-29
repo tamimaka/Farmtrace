@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block page_title %}User accounts{% endblock %}
+{% block content %}
+
+<div class="panel">
+  <div class="panel-head">
+    <h2 style="margin:0;">Login accounts</h2>
+    <a href="{{ url_for('user_new') }}" class="btn btn-sm">+ New account</a>
+  </div>
+  <table>
+    <thead><tr><th>Username</th><th>Role</th><th>Linked to</th><th>Created</th></tr></thead>
+    <tbody>
+    {% for u in users %}
+      <tr>
+        <td>{{ u.username }}</td>
+        <td><span class="pill pill-{{ 'exported' if u.role=='admin' else 'growing' if u.role=='agent' else 'ready_for_sale' if u.role=='exporter' else 'planted' }}">{{ u.role }}</span></td>
+        <td class="empty" style="padding:0;">
+          {% if u.role == 'farmer' and u.farmer_id %}Farmer #{{ u.farmer_id }}
+          {% elif u.role == 'exporter' and u.exporter_id %}Exporter #{{ u.exporter_id }}
+          {% else %}—{% endif %}
+        </td>
+        <td>{{ u.created_at[:10] if u.created_at else '—' }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="panel">
+  <p class="empty" style="padding:0;">
+    <strong>Roles:</strong> <em>admin</em> — full access, manages accounts.
+    <em>agent</em> — registers farmers, batches, inputs, syncs.
+    <em>farmer</em> — a login linked to one farmer record; sees only their own profile and batches.
+    <em>exporter</em> — a login linked to one exporter company; browses batches and exporters (verifying a batch via its QR code never requires login).
+  </p>
+</div>
+
+{% endblock %}

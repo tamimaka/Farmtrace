@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verify {{ batch_code }} — Mbeu Trace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Karla:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<style>
+  .badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 16px; }
+  .badge-tag { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; }
+  .badge-eudr { background: #eaf7ee; color: #1b4332; border: 1px solid #b7e4c7; }
+  .badge-crypto { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+  .badge-fairtrade { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+  #map { height: 220px; width: 100%; border-radius: 8px; margin-top: 12px; border: 1px solid #e0e0e0; }
+</style>
+</head>
+<body>
+
+<div class="verify-head">
+  <div class="brand"><span class="seed"></span> Mbeu Trace</div>
+  <p style="padding:0; margin:0;">Decentralized Farm-to-Fork Traceability & Verification</p>
+</div>
+
+<div class="verify-wrap">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="flash flash-{{ 'error' if category=='error' else 'success' }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {% if not batch %}
+    <div class="cert not-found">
+      <h2>No batch found for code {{ batch_code }}</h2>
+      <p>This code doesn't match any record in the system. If you scanned a printed QR code, please check with the farmer or agent who issued it.</p>
+    </div>
+  {% else %}
+    <div class="cert">
+      <div class="cert-top">
+        <div>
+          <h2 style="margin-bottom:2px;">{{ batch.crop_name }} <span class="empty" style="padding:0;">({{ batch.variety }})</span></h2>
+          <span class="batch-code">{{ batch.batch_code }}</span>
+        </div>
+        <span class="pill pill-{{ batch.status }}">{{ batch.status.replace('_',' ') }}</span>
+      </div>
+
+      <!-- TRUST & COMPLIANCE BADGES -->
+      <div class="badge-row">
+        {% if farm and farm.eudr_compliant %}
+          <span class="badge-tag badge-eudr">🌲 EUDR Verified Deforestation-Free</span>
+        {% endif %}
+        {% if audit_status and audit_status.valid %}
+          <span class="badge-tag badge-crypto">🛡️ Cryptographically Chained (SHA-256)</span>
+        {% endif %}
+        <span class="badge-tag badge-fairtrade">🤝 Fair-Trade Origin Verified</span>
+      </div>
+
+      <dl class="cert-grid">
+        <div><dt>Producer / Farmer</dt><dd>{{ batch.farmer_name }} ({{ batch.farmer_code }})</dd></div>
+        <div><dt>Origin Region</dt><dd>{{ batch.district or '—' }}{% if batch.province %}, {{ batch.province }}{% endif %}</dd></div>
+        <div><dt>Cooperative</dt><dd>{{ batch.cooperative or 'Independent Grower' }}</dd></div>
+        <div><dt>Harvest Date</dt><dd>{{ batch.harvest_date or 'Growing' }}</dd></div>
+        <div><dt>Certified Quantity</dt><dd>{{ (batch.quantity_kg ~ ' kg') if batch.quantity_kg else 'In field' }}</dd></div>
+        <div><dt>Quality Grade</dt><dd>{{ batch.quality_grade }}</dd></div>
+        <div><dt>Organic Method</dt><dd>{{ 'Certified Organic' if batch.is_organic else 'Conventional' }}</dd></div>
+        <div><dt>Verified Contact</dt><dd>{{ masked_phone }} <small style="color:var(--text-muted);">(Protected)</small></dd></div>
+      </dl>
+
+      <!-- GEOLOCATION & EUDR PLOT MAP -->
+      {% set lat = (farm.gps_lat if farm and farm.gps_lat else batch.gps_lat) %}
+      {% set lon = (farm.gps_lon if farm and farm.gps_lon else batch.gps_lon) %}
+      {% if lat and lon %}
+      <div style="margin-top:16px;">
+        <h3 style="margin-bottom:4px;">Farm Geolocation (EUDR Cadastral Reference)</h3>
+        <p class="empty" style="padding:0; font-size:0.85rem;">Coordinates: {{ lat }}, {{ lon }} &middot; Deforestation check cut-off: 31 Dec 2020</p>
+        <div id="map"></div>
+      </div>
+      {% endif %}
+
+      <!-- BATCH LINEAGE -->
+      {% if parents or children %}
+      <div style="margin-top:20px; padding:12px; background:#f9fbf9; border-radius:6px; border:1px solid #e5ebe5;">
+        <h3 style="margin-top:0; font-size:0.95rem;">Chain of Custody Lineage</h3>
+        {% if parents %}
+          <p style="font-size:0.85rem; margin:4px 0;"><strong>Derived from primary lots:</strong>
+            {% for p in parents %}
+              <span class="batch-code" style="font-size:0.75rem;">{{ p.batch_code }}</span> ({{ p.quantity_kg }} kg)
+            {% endfor %}
+          </p>
+        {% endif %}
+        {% if children %}
+          <p style="font-size:0.85rem; margin:4px 0;"><strong>Graded into child lots:</strong>
+            {% for c in children %}
+              <span class="batch-code" style="font-size:0.75rem;">{{ c.batch_code }}</span> (Grade {{ c.quality_grade }})
+            {% endfor %}
+          </p>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <h3>Inputs applied</h3>
+      {% if inputs %}
+      <ul class="timeline">
+        {% for i in inputs %}
+          <li><div class="t-date">{{ i.application_date or '' }}</div><div class="t-title">{{ i.input_type|capitalize }} — {{ i.input_name }}</div><div class="t-desc">{{ i.quantity or '' }} {{ i.unit or '' }} {% if i.supplier %}&middot; Supplier: {{ i.supplier }}{% endif %}</div></li>
+        {% endfor %}
+      </ul>
+      {% else %}<p class="empty">No chemical or synthetic inputs recorded.</p>{% endif %}
+
+      <h3>Activity trail</h3>
+      {% if processes %}
+      <ul class="timeline">
+        {% for p in processes %}
+          <li><div class="t-date">{{ p.process_date or '' }}</div><div class="t-title">{{ p.process_type.replace('_',' ')|capitalize }}</div><div class="t-desc">{{ p.description or '' }}</div></li>
+        {% endfor %}
+      </ul>
+      {% else %}<p class="empty">No field activities recorded.</p>{% endif %}
+
+      <h3>Outputs & Packaging</h3>
+      {% if outputs %}
+      <ul class="timeline">
+        {% for o in outputs %}
+          <li><div class="t-date">{{ o.output_date or '' }}</div><div class="t-title">{{ o.output_type|capitalize if o.output_type else 'Output' }} — {{ o.quantity_kg }} kg</div><div class="t-desc">{{ o.packaging_type or '' }} {% if o.storage_location %}&middot; Location: {{ o.storage_location }}{% endif %}</div></li>
+        {% endfor %}
+      </ul>
+      {% else %}<p class="empty">Harvest packaging not yet completed.</p>{% endif %}
+    </div>
+
+    <!-- VERIFICATION PANEL (ROLE SECURED) -->
+    <div class="panel" style="margin-top:20px;">
+      <h2>Log an Official Verification</h2>
+      <p class="empty" style="padding:0 0 10px;">Official trade inspection and export sign-off for international buyers.</p>
+
+      {% if current_user.is_authenticated and current_user.role in ['admin', 'agent', 'exporter'] %}
+      <form method="post">
+        <div class="form-grid">
+          <div class="field"><label>Your name</label><input type="text" name="verifier_name" value="{{ current_user.username }}" required></div>
+          <div class="field"><label>Exporter company</label>
+            <select name="exporter_id">
+              <option value="">—</option>
+              {% for e in exporters %}
+                <option value="{{ e.exporter_id }}" {{ 'selected' if current_user.exporter_id == e.exporter_id }}>{{ e.company_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field"><label>Decision</label>
+            <select name="verification_status">
+              <option value="verified">Verified (Approved for Export)</option>
+              <option value="flagged">Flagged (Requires Audit)</option>
+              <option value="rejected">Rejected (Non-compliant)</option>
+            </select>
+          </div>
+          <div class="field"><label>Agreed Price (USD)</label><input type="number" step="0.01" name="price_agreed_usd" placeholder="e.g. 450.00"></div>
+          <div class="field full"><label>Inspection Notes & Certificate Ref</label><textarea name="notes" placeholder="Phytosanitary inspection notes, moisture check, compliance observations..."></textarea></div>
+        </div>
+        <button class="btn btn-gold" style="margin-top:14px;" type="submit">Submit Official Verification</button>
+      </form>
+      {% else %}
+      <div style="background:#fdfcf9; border:1px dashed #d1c7ad; padding:16px; border-radius:6px; text-align:center;">
+        <p style="margin:0 0 10px; color:var(--text-muted);">Inspection and trade sign-off is restricted to certified buyers and quality agents.</p>
+        <a href="{{ url_for('login', next=request.path) }}" class="btn btn-outline btn-sm">Log in as Exporter / Inspector</a>
+      </div>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+
+<!-- LEAFLET MAP SCRIPT -->
+{% if lat and lon %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    var lat = {{ lat }};
+    var lon = {{ lon }};
+    var map = L.map('map').setView([lat, lon], 13);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    var marker = L.marker([lat, lon]).addTo(map);
+    marker.bindPopup("<b>{{ batch.farmer_name }}'s Farm</b><br>{{ batch.crop_name }} (EUDR Compliant)").openPopup();
+
+    {% if farm and farm.polygon_geojson %}
+    try {
+      var polygonData = JSON.parse('{{ farm.polygon_geojson | tojson | safe }}');
+      if (Array.isArray(polygonData)) {
+        // Swap [lon, lat] to [lat, lon] if needed
+        var latLngs = polygonData.map(function(pt) { return [pt[1], pt[0]]; });
+        var polygon = L.polygon(latLngs, { color: '#2d6a4f', fillOpacity: 0.35 }).addTo(map);
+        map.fitBounds(polygon.getBounds());
+      }
+    } catch(e) {
+      console.log("Could not parse GeoJSON polygon", e);
+    }
+    {% endif %}
+  });
+</script>
+{% endif %}
+
+</body>
+</html>

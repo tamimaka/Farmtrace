@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block page_title %}Exporters{% endblock %}
+{% block content %}
+
+<div class="hero hero-sm hero-produce">
+  <div class="hero-inner">
+    <h1 style="font-size:1.4rem;">Buyers on the other end</h1>
+    <p>The exporters who scan a batch's QR and take on the produce from here.</p>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-head">
+    <h2 style="margin:0;">Registered exporters / buyers</h2>
+    {% if current_user.role in ['admin','agent'] %}
+    <a href="{{ url_for('exporter_new') }}" class="btn btn-sm">+ Register exporter</a>
+    {% endif %}
+  </div>
+  {% if exporters %}
+  <table>
+    <thead><tr><th>Company</th><th>Contact</th><th>Phone</th><th>License</th></tr></thead>
+    <tbody>
+    {% for e in exporters %}
+      <tr>
+        <td>{{ e.company_name }}</td>
+        <td>{{ e.contact_person or '—' }}</td>
+        <td>{{ e.phone or '—' }}</td>
+        <td class="batch-code">{{ e.license_number or '—' }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p class="empty">No exporters registered yet.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

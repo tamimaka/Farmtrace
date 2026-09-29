@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block page_title %}Farmers{% endblock %}
+{% block content %}
+
+<div class="hero hero-sm hero-oxen">
+  <div class="hero-inner">
+    <h1 style="font-size:1.4rem;">Registered growers</h1>
+    <p>Every batch in the system traces back to one of these farmers and their fields.</p>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-head">
+    <form method="get" style="display:flex; gap:8px;">
+      <input type="text" name="q" value="{{ q }}" placeholder="Search by name, code or district..." style="width:280px;">
+      <button class="btn btn-outline btn-sm" type="submit">Search</button>
+    </form>
+    {% if current_user.role in ['admin','agent'] %}
+    <a href="{{ url_for('farmer_new') }}" class="btn btn-sm">+ Register farmer</a>
+    {% endif %}
+  </div>
+
+  {% if farmers %}
+  <table>
+    <thead><tr><th>Farmer code</th><th>Name</th><th>District</th><th>Phone</th><th>Registered</th><th></th></tr></thead>
+    <tbody>
+    {% for f in farmers %}
+      <tr>
+        <td class="batch-code">{{ f.farmer_code }}</td>
+        <td>{{ f.full_name }}</td>
+        <td>{{ f.district or '—' }}</td>
+        <td>{{ f.phone or '—' }}</td>
+        <td>{{ f.registration_date[:10] if f.registration_date else '—' }}</td>
+        <td><a href="{{ url_for('farmer_detail', farmer_id=f.farmer_id) }}" class="btn btn-outline btn-sm">View</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p class="empty">No farmers found. <a href="{{ url_for('farmer_new') }}">Register one</a>.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

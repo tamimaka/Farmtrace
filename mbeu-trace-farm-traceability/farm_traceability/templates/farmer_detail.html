@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block page_title %}{{ farmer.full_name }}{% endblock %}
+{% block content %}
+
+<div class="two-col">
+  <div>
+    <div class="panel">
+      <div class="panel-head">
+        <h2>{{ farmer.full_name }}</h2>
+        <span class="batch-code">{{ farmer.farmer_code }}</span>
+      </div>
+      <div class="cert-grid" style="margin-bottom:0;">
+        <div><dt>District / Ward</dt><dd>{{ farmer.district or '—' }} {% if farmer.ward %}/ Ward {{ farmer.ward }}{% endif %}</dd></div>
+        <div><dt>Village</dt><dd>{{ farmer.village or '—' }}</dd></div>
+        <div><dt>Phone</dt><dd>{{ farmer.phone or '—' }}</dd></div>
+        <div><dt>Cooperative</dt><dd>{{ farmer.cooperative or '—' }}</dd></div>
+        <div><dt>Registered</dt><dd>{{ farmer.registration_date[:10] if farmer.registration_date else '—' }}</dd></div>
+        <div><dt>Sync status</dt><dd>{% if farmer.synced %}Synced{% else %}Pending sync{% endif %}</dd></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Produce batches</h2>
+        {% if current_user.role in ['admin','agent'] %}
+        <a href="{{ url_for('batch_new', farmer_id=farmer.farmer_id) }}" class="btn btn-gold btn-sm">+ New batch</a>
+        {% endif %}
+      </div>
+      {% if batches %}
+      <table>
+        <thead><tr><th>Batch code</th><th>Crop</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for b in batches %}
+          <tr onclick="window.location='{{ url_for('batch_detail', batch_id=b.batch_id) }}'" style="cursor:pointer">
+            <td class="batch-code">{{ b.batch_code }}</td>
+            <td>{{ b.crop_name }}</td>
+            <td><span class="pill pill-{{ b.status }}">{{ b.status.replace('_',' ') }}</span></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <p class="empty">No batches recorded yet for this farmer.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div>
+    <div class="panel">
+      <h2>Farms / plots</h2>
+      {% if farms %}
+        {% for farm in farms %}
+          <div style="padding:10px 0; border-bottom:1px solid var(--line);">
+            <strong>{{ farm.farm_name or 'Unnamed plot' }}</strong><br>
+            <span class="empty" style="padding:0;">{{ farm.size_hectares or '?' }} ha &middot; {{ farm.soil_type or 'soil type unrecorded' }} &middot; {{ farm.water_source or '—' }}</span>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="empty">No farm/plot recorded.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

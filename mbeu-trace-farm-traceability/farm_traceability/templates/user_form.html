@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block page_title %}New user account{% endblock %}
+{% block content %}
+
+<div class="panel" style="max-width:600px;">
+  <h2>Create login account</h2>
+  <p class="empty" style="padding:0 0 14px;">
+    Give a farmer or exporter their own login so they can check in from their own
+    phone — a farmer sees only their own batches; an exporter can browse
+    batches and their verification history. Admin/agent accounts are for
+    people running the kiosk itself.
+  </p>
+  <form method="post">
+    <div class="form-grid narrow">
+      <div class="field"><label>Username *</label><input type="text" name="username" required></div>
+      <div class="field"><label>Password *</label><input type="password" name="password" required></div>
+      <div class="field">
+        <label>Role *</label>
+        <select name="role" id="role-select" onchange="toggleLinks()" required>
+          <option value="admin">Admin</option>
+          <option value="agent">Agent</option>
+          <option value="farmer">Farmer</option>
+          <option value="exporter">Exporter</option>
+        </select>
+      </div>
+      <div class="field" id="farmer-link" style="display:none;">
+        <label>Linked farmer</label>
+        <select name="farmer_id">
+          <option value="">—</option>
+          {% for f in farmers %}<option value="{{ f.farmer_id }}">{{ f.full_name }} ({{ f.farmer_code }})</option>{% endfor %}
+        </select>
+      </div>
+      <div class="field" id="exporter-link" style="display:none;">
+        <label>Linked exporter</label>
+        <select name="exporter_id">
+          <option value="">—</option>
+          {% for e in exporters %}<option value="{{ e.exporter_id }}">{{ e.company_name }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:20px;">
+      <button class="btn" type="submit">Create account</button>
+      <a href="{{ url_for('users_list') }}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<script>
+function toggleLinks(){
+  var role = document.getElementById('role-select').value;
+  document.getElementById('farmer-link').style.display = role === 'farmer' ? 'flex' : 'none';
+  document.getElementById('exporter-link').style.display = role === 'exporter' ? 'flex' : 'none';
+}
+</script>
+
+{% endblock %}

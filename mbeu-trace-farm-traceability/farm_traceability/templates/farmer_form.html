@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block page_title %}Register farmer{% endblock %}
+{% block content %}
+
+<div class="hero hero-sm">
+  <div class="hero-inner">
+    <h1 style="font-size:1.4rem;">Register a farmer</h1>
+    <p>Every field starts with one grower. Capture their details once — every batch they plant afterwards links back here.</p>
+  </div>
+</div>
+
+<div class="panel" style="max-width:760px;">
+  <h2>Farmer details</h2>
+  <p class="empty" style="padding:0 0 14px;">Captured entirely offline on this device. The record is saved locally now and queued for sync once the kiosk is back online.</p>
+  <form method="post">
+    <div class="form-grid">
+      <div class="field"><label>Full name *</label><input type="text" name="full_name" required></div>
+      <div class="field"><label>National ID</label><input type="text" name="national_id" placeholder="63-XXXXXXX-X-00"></div>
+      <div class="field"><label>Phone</label><input type="text" name="phone" placeholder="+263 7X XXX XXXX"></div>
+      <div class="field"><label>Gender</label>
+        <select name="gender"><option value="">—</option><option value="female">Female</option><option value="male">Male</option><option value="other">Other</option></select>
+      </div>
+      <div class="field"><label>Date of birth</label><input type="date" name="date_of_birth"></div>
+      <div class="field"><label>Cooperative / farmer group</label><input type="text" name="cooperative"></div>
+
+      <div class="field"><label>Village</label><input type="text" name="village"></div>
+      <div class="field"><label>Ward</label><input type="text" name="ward"></div>
+      <div class="field"><label>District *</label><input type="text" name="district" required></div>
+      <div class="field"><label>Province</label><input type="text" name="province"></div>
+      <div class="field"><label>GPS latitude</label><input type="text" name="gps_lat" placeholder="-18.9245"></div>
+      <div class="field"><label>GPS longitude</label><input type="text" name="gps_lon" placeholder="31.0530"></div>
+    </div>
+
+    <h2 style="margin-top:26px;">First farm / plot & EUDR Geolocation (optional)</h2>
+    <div class="form-grid">
+      <div class="field"><label>Farm name</label><input type="text" name="farm_name" placeholder="e.g. Chikwanha homestead field"></div>
+      <div class="field"><label>Size (hectares)</label><input type="number" step="0.01" name="size_hectares"></div>
+      <div class="field"><label>Soil type</label><input type="text" name="soil_type" placeholder="e.g. sandy loam"></div>
+      <div class="field"><label>Water source</label>
+        <select name="water_source"><option value="">—</option><option>Rainfed</option><option>Borehole</option><option>River</option><option>Dam</option></select>
+      </div>
+      <div class="field full">
+        <label>EUDR Plot Boundary Polygon (GeoJSON / Closed Coordinates)</label>
+        <input type="text" name="polygon_geojson" placeholder='[[31.051, -18.923], [31.055, -18.923], [31.055, -18.927], [31.051, -18.927], [31.051, -18.923]]'>
+        <small style="color:var(--text-muted); font-size:0.75rem; display:block; margin-top:3px;">Required for EU Deforestation Regulation export compliance. Must be a closed polygon.</small>
+      </div>
+      <div class="field">
+        <label>Deforestation-Free Certification</label>
+        <select name="eudr_compliant">
+          <option value="1">Certified Deforestation-Free (Post-2020)</option>
+          <option value="0">Pending Verification</option>
+        </select>
+      </div>
+    </div>
+
+    <input type="hidden" name="registered_by" value="agent-kiosk">
+    <div style="margin-top:22px;">
+      <button class="btn" type="submit">Register farmer</button>
+      <a href="{{ url_for('farmers_list') }}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

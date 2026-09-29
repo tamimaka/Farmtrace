@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Mbeu Trace{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Karla:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="seed"></span> Mbeu Trace</div>
+    <div class="brand-sub">Seed to exporter, verified.</div>
+    <nav class="nav">
+      <a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint=='dashboard' }}">Dashboard</a>
+      {% if current_user.role != 'farmer' %}
+      <a href="{{ url_for('farmers_list') }}" class="{{ 'active' if request.endpoint in ['farmers_list','farmer_new','farmer_detail'] }}">Farmers</a>
+      {% endif %}
+      <a href="{{ url_for('batches_list') }}" class="{{ 'active' if request.endpoint in ['batches_list','batch_new','batch_detail'] }}">Produce Batches</a>
+      {% if current_user.role != 'farmer' %}
+      <a href="{{ url_for('exporters_list') }}" class="{{ 'active' if request.endpoint in ['exporters_list','exporter_new'] }}">Exporters</a>
+      {% endif %}
+      <a href="{{ url_for('sync_page') }}" class="{{ 'active' if request.endpoint=='sync_page' }}">Sync</a>
+      {% if current_user.role == 'admin' %}
+      <a href="{{ url_for('users_list') }}" class="{{ 'active' if request.endpoint in ['users_list','user_new'] }}">User accounts</a>
+      {% endif %}
+    </nav>
+    <div class="sidebar-foot">
+      Offline-first &middot; Raspberry Pi kiosk<br>
+      Device: raspberrypi-kiosk-01
+      {% if current_user.is_authenticated %}
+      <div class="user-chip">
+        <div>
+          <div class="who">{{ current_user.username }}</div>
+          <div class="role">{{ current_user.display_role }}</div>
+        </div>
+        <a href="{{ url_for('logout') }}">Log out</a>
+      </div>
+      {% endif %}
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+      <a href="{{ url_for('sync_page') }}" class="sync-badge {{ 'pending' if pending_sync and pending_sync > 0 }}">
+        <span class="sync-dot"></span>
+        {% if pending_sync and pending_sync > 0 %}{{ pending_sync }} record{{ 's' if pending_sync != 1 }} waiting to sync{% else %}All records synced{% endif %}
+      </a>
+    </div>
+    <div class="content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="flash flash-{{ 'error' if category=='error' else 'success' }}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+</body>
+</html>
