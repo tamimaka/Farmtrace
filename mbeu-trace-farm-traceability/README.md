@@ -7,13 +7,13 @@
 
 ---
 
-## 1. Quickstart
+
 
 
 
 ---
 
-## 2. Advanced Features Built Into This Release
+## 1. Advanced Features Built Into This Release
 
 ### 🌲 1. EUDR Deforestation Compliance & Geolocation
 * **European Union Deforestation Regulation (EUDR)** mandates that agricultural imports into the EU must prove they were not grown on land deforested after Dec 31, 2020.
@@ -39,7 +39,7 @@
 
 ---
 
-## 3. Project Structure
+## 2. Project Structure
 
 ```
 mbeu-trace-farm-traceability/
@@ -62,7 +62,7 @@ mbeu-trace-farm-traceability/
 
 ---
 
-## 4. API Reference
+## 3. API Reference
 
 | Endpoint | Method | Auth | Description |
 |---|---|---|---|
@@ -74,7 +74,7 @@ mbeu-trace-farm-traceability/
 
 ---
 
-## 5. Database Schema Overview
+## 4. Database Schema Overview
 
 ```
 farmers ──< farms (EUDR Polygons) ──< batches >── crops
@@ -91,16 +91,6 @@ users      — login accounts (admin / agent / farmer / exporter roles)
 
 ---
 
-## 6. Hackathon 3-Minute Demo Script
-
-1. **Dashboard & Offline Badge**:
-   - Point out the real-time **Sync Status badge** in the top navigation bar showing offline resilience.
-2. **EUDR Farmer Plot**:
-   - Navigate to **Farmers** and open grower **Tapiwa Moyo**. Show the cadastral plot boundary coordinates and the EUDR compliance certification.
-3. **Produce Batch & DAG Splitting**:
-   - Navigate to **Batches** and open batch **`ZWB-20260922-0001`**.
-   - Show the **Batch Lineage DAG** and the **`🛡️ Cryptographic Audit Verified`** indicator.
-   - Demonstrate the **"✂️ Split this batch into a new graded lot"** form to create a child export lot with automated parent deduction.
 4. **The Live QR Scan "Magic Moment"**:
    - Open the verification certificate by scanning or clicking the QR code.
    - Show the **interactive Leaflet map** rendering the farm coordinates.
