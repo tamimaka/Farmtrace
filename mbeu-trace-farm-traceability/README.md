@@ -9,20 +9,7 @@
 
 ## 1. Quickstart
 
-To run the application immediately:
 
-```powershell
-# In PowerShell:
-.\run.ps1
-
-# Or double-click:
-run.bat
-```
-
-Open your browser to: **[http://localhost:5000](http://localhost:5000)**
-
-* **Admin Login**: `admin` / `admin123`
-* **Agent Login**: `agent` / `agent123`
 
 ---
 
